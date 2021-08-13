@@ -1,0 +1,31 @@
+{
+  "name": "natourserver",
+  "version": "1.0.0",
+  "description": "",
+  "main": "app.js",
+  "scripts": {
+    "start": "nodemon app"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://gitlab.com/vivek.jmdsmvdu/natourserver.git"
+  },
+  "author": "natour",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://gitlab.com/vivek.jmdsmvdu/natourserver/issues"
+  },
+  "homepage": "https://gitlab.com/vivek.jmdsmvdu/natourserver#readme",
+  "dependencies": {
+    "bcryptjs": "^2.4.3",
+    "dotenv": "^10.0.0",
+    "express": "^4.17.1",
+    "jsonwebtoken": "^8.5.1",
+    "mongoose": "^5.13.0",
+    "morgan": "^1.10.0",
+    "nodemailer": "^6.6.3",
+    "nodemon": "^2.0.12",
+    "slugify": "^1.5.3",
+    "validator": "^13.6.0"
+  }
+}
