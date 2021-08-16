@@ -2,6 +2,7 @@ const User = require('../models/userModel');
 const nodemailer = require('nodemailer');
 const jwt = require('jsonwebtoken');
 const bcrypt = require('bcryptjs');
+const crypto = require('crypto');
 const AppError = require('../utils/appError');
 const catchAsync = require('../utils/catchAsync');
 
@@ -62,6 +63,7 @@ exports.protect = catchAsync( async(req, res, next) => {
   let token;
   if(req.headers.authorization && req.headers.authorization.startsWith('Bearer')){
     token = req.headers.authorization.split(' ')[1];
+    console.log(token)
   }
 
   if(!token){
@@ -130,8 +132,119 @@ exports.forgotPassword = catchAsync(async(req, res, next) => {
 
 
 exports.resetPassword = catchAsync(async(req, res, next) => {
-  res.redirect('https://web.whatsapp.com/')
+  // 1) Get User based on Token
+  const hashedToken = crypto.createHash('sha256').update(req.params.resetToken).digest('hex');
+  //console.log(hashedToken);
+  const user = await User.findOne({'passwordResetToken': '654ed29365633c8be8f5a1ef2de654b3b02ee10c47bdfa767ec3880828b8a957' });
+  console.log(user);
+  // 2) If token has not expired, and there is user, allow to modify password.
+  if(!user){
+    return next(new AppError('Token is invalid or has expired', 400))
+  }
+
+  user.password = req.body.password;
+  user.passwordConfirm = req.body.passwordConfirm;
+  user.passwordChangedAt = Date.now();
+  user.passwordResetExpires = undefined;
+  user.passwordResetToken = undefined;
+  await user.save();
+
+  const token = jwt.sign({ id: user._id }, process.env.JWT_SECRET , {
+    expiresIn: process.env.JWT_EXPIRES_IN
+  });
+
+
+  res.status(200).json({
+    status: 'success',
+    token
+  })
 })
+
+
+
+exports.updatePassword = catchAsync(async(req, res, next) => {
+    // 1. Get User from collection
+    const user = await User.findOne({"_id": req.user._id});
+    // 2. check if current password is correct.
+    let checkPassword = await bcrypt.compare(req.body.passwordCurrent, user.password);
+    console.log(checkPassword);
+    if(!user || !checkPassword){
+      return next(new AppError('Your current password is wrong', 401));
+    }
+    // 3. allow to update new password.
+    user.password = req.body.password;
+    user.passwordConfirm = req.body.passwordConfirm;
+    await user.save();
+    // 4. Log user in, send JWT Token
+    const token = jwt.sign({ id: user._id }, process.env.JWT_SECRET , {
+      expiresIn: process.env.JWT_EXPIRES_IN
+    });
+  
+  
+    res.status(200).json({
+      status: 'success',
+      message: 'Your password changes successfully',
+      token
+    })
+})
+
+
+exports.updateMe = catchAsync( async(req, res, next) => {
+  if(req.body.password || req.body.passwordConfirm || req.body.email){
+    return next(new AppError('This is not route for password update ', 400))
+  }
+
+  const user = await User.findOne({"_id": req.user._id});
+  user.name = req.body.name;
+  await user.save({ validateBeforeSave: false});
+
+  res.status(200).json({
+    status: 'success',
+    message: 'Your details changed successfully',
+  })
+
+})
+
+
+
+
+exports.deleteMe = catchAsync( async(req, res, next) => {
+  const user = await User.findOne({"_id": req.user._id});
+  if(!user){
+    return next(new AppError('User Not Found', 404))
+  }
+
+  await User.findByIdAndUpdate(req.user._id, {active: false});
+  res.status(200).json({
+    status: 'success',
+    message: 'user deleted succesffully'
+  })
+
+})
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 

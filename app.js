@@ -25,9 +25,9 @@ app.use(express.json());
 //     next();
 // })
 
-// if(process.env.NODE_ENV === 'development'){
-//     app.use(logger('tiny'));
-// }
+if(process.env.NODE_ENV === 'development'){
+    app.use(logger('tiny'));
+}
 app.use('/api/v1/tours', tourRouter);
 app.use('/api/v1/users', userRouter);
 

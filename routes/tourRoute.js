@@ -12,7 +12,7 @@ const router = express.Router();
 // router.route('/:_id').get(tourController.getTour);
 
 
-router.route('/getalltour').get(authController.protect,tourController.getAllTour)
+router.route('/getalltour').get(tourController.getAllTour)
 router.route('/getonetour/:id').get(tourController.getTour)
 router.route('/createnewtour').post(tourController.createTour)
 router.route('/updatetour/:id').patch(tourController.updateTour)
